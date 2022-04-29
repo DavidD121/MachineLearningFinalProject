@@ -1,5 +1,8 @@
 /imgs/
 /XteDrivingImages.npy
+/XteDrivingImageNames.npy
 /XtrDrivingImages.npy
 /YtrDrivingLabels.npy
-/XteDrivingImageNames.npy
+/submission.csv
+.idea
+/venv/
