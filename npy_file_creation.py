@@ -5,6 +5,7 @@ from PIL import Image
 from os import path
 from tqdm import tqdm, trange
 
+M = 96  # M for MxM images
 train, test, test_image_names, labels = [], [], [], []  # initialize arrays for training images, testing images, and training labels
 
 if path.exists('XtrDrivingImages.npy') and path.exists('YtrDrivingLabels.npy'):
@@ -15,7 +16,7 @@ else:
     # loop through all training images and store images and labels in associated arrays (train, labels)
     for _ in range(10):
         for filename in tqdm(glob.glob('imgs/train/c{}/*.jpg'.format(_))):
-            im = np.asarray(Image.open(filename).convert('L').resize((64, 64)))
+            im = np.asarray(Image.open(filename).convert('L').resize((M, M)))
             train.append(im)
             labels.append(_)
 
@@ -33,7 +34,7 @@ if path.exists('XteDrivingImages.npy') and path.exists('XteDrivingImageNames.npy
 else:
     # loop through all testing images and store in associated array (test)
     for filename in tqdm(glob.glob('imgs/test/*.jpg')):
-        im = np.asarray(Image.open(filename).convert('L').resize((64, 64)))
+        im = np.asarray(Image.open(filename).convert('L').resize((M, M)))
         test.append(im)  # append formatted image to
         im_name = filename.replace('imgs/test/', '').strip()  # get image name
         test_image_names.append(im_name)  # append to image names list
