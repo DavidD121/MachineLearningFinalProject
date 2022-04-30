@@ -1,10 +1,12 @@
+import timeit
+
 import numpy as np
 import pandas as pd
+import seaborn as sns
+import time
 from sklearn.decomposition import PCA
 from matplotlib import pyplot as plt
-
-# global constants
-N = 2  # number of components for PCA
+from tqdm import trange
 
 
 # load data from .npy file
@@ -13,46 +15,70 @@ def load_data(data):
 
 
 if __name__ == "__main__":
-    # Load data
-    xtrain = load_data('XtrDrivingImages.npy') / 255
+
+    begin = time.time()  # program start time
+
+    # Load data and normalize images
+    xtrain = load_data('XtrDrivingImages.npy') / 255.0
     ytrain = load_data('YtrDrivingLabels.npy')
-    # xtest = load_data('XteDrivingImages.npy') / 255
+    xtest = load_data('XteDrivingImages.npy') / 255.0
     # test_image_names = load_data('XteDrivingImageNames.npy')
 
-    print("Min:{}, Max: {}".format(np.min(xtrain), np.max(xtrain)))
+    print("Min:{}, Max: {}".format(np.min(xtrain), np.max(xtrain)))  # ensure values are normalized (between 0 and 1)
 
-    xtrain_flat = xtrain.reshape(-1, 2304)
-
+    n, m = xtrain.shape[0], xtrain.shape[1]
+    xtrain_flat = xtrain.reshape(-1, m ** 2)
+    # xtest_flat = xtest.reshape(-1, m ** 2)
     print('Size of the flattened xtrain: {}'.format(xtrain_flat.shape))
 
     feat_cols = ['pixel' + str(i) for i in range(xtrain_flat.shape[1])]
     df_train = pd.DataFrame(xtrain_flat, columns=feat_cols)
     df_train['label'] = ytrain
+    print('Size of the dataframe: {}'.format(df_train.shape))  # show size=
 
-    # print(df_train.head())  # show head of df_train (first 5 records)
-    print('Size of the dataframe: {}'.format(df_train.shape))  # show size
+    # ---------------------------------------------------------------------------------------------------------------
+    # Perform PCA(n_components=2) on training set and visualize
+    # ---------------------------------------------------------------------------------------------------------------
 
     # initialize PCA model
-    pca_train = PCA(n_components=N)
-
+    pca_train = PCA(n_components=2)
     # fit PCA model with DataFrame data from training matrix
     train_pc = pca_train.fit_transform(df_train.iloc[:, :-1])
 
-    # create DataFrame from fit PCA model
-    # train_pc_df = pd.DataFrame(data=train_pc, columns=['principal component 1', 'principal component 2'])
-    n_pc = []
-    for n in range(N):
-        n_pc.append('principal component {}'.format(n + 1))
+    n_pc = []  # list of column names for principal component DataFrame
+    for n in range(2):
+        n_pc.append('PC {}'.format(n + 1))
 
-    # show principal component column labels
-    print("principal component columns:\n{}".format(n_pc))
+    # create DataFrame for principal components
     train_pc_df = pd.DataFrame(data=train_pc, columns=n_pc)
+    # add associated training label column to PCA model DataFrame
+    train_pc_df['y'] = ytrain
 
-    train_pc_df['y'] = ytrain  # add associated training label column to PCA model DataFrame
-    print(train_pc_df.head())  # show head of PCA model DataFrame
-
-    # show explained variance associated with each principal component
+    # show explained variance associated with principal components
     exp_var_matrix = pca_train.explained_variance_ratio_
+    print('Explained variation per PC: {}'.format(exp_var_matrix))
+    print('Total explained variation by PCs: {}%'.format(round(exp_var_matrix.sum() * 100, 2)))
 
-    print('Explained variation per principal component: {}'.format(exp_var_matrix))
-    print('Total explained variation by principal components: {}%'.format(round(exp_var_matrix.sum() * 100, 2)))
+    # plot scatterplot of PCA model (2 PCs)
+    plt.figure(figsize=(16, 10))
+    sns.scatterplot(x='PC 1', y='PC 2', hue="y",
+                    palette=sns.color_palette("hls", 10), data=train_pc_df, legend="full", alpha=0.3)
+    plt.show()
+
+    # ---------------------------------------------------------------------------------------------------------------
+    # Leveraging PCA to create a usable data that achieves a desired variance, to be passed to a learning model.
+    # ---------------------------------------------------------------------------------------------------------------
+
+    # find n_components that achieve 90% explained variance
+    # pca = PCA(0.9)
+    # pca.fit(xtrain_flat)
+    # print("{} PCs explain 90% of variance".format(pca.n_components_))
+
+    # apply transform on train & test set to generate new dataset from the calculated PCs
+    # train_img_pca = pca.transform(xtrain_flat)
+    # test_img_pca = pca.transform(xtest_flat)
+
+    end = time.time()  # program end time
+    print("Execution Time: {} seconds".format(round(end - begin, 2)))
+
+
