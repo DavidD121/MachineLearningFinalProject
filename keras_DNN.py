@@ -5,13 +5,15 @@ from dataPCA import load_data
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.utils import np_utils
-from tensorflow.keras.optimizers import RMSprop
+from tensorflow.keras.optimizers import RMSprop, SGD, Adam
 
 if __name__ == "__main__":
     begin = time.time()  # program start time
-    batch_size = 128
+    batch_size = 64
     num_classes = 10
     epochs = 20
+    epsilon = 1e-3
+    learn_rate = 1e-2
 
     # Load data and normalize images
     xtrain = load_data('XtrDrivingImages.npy') / 255.0
@@ -40,7 +42,7 @@ if __name__ == "__main__":
 
     # Compile model
     model.compile(loss='categorical_crossentropy',
-                  optimizer=RMSprop(),
+                  optimizer=SGD(learning_rate=learn_rate),
                   metrics=['accuracy'])
 
     # Train model and store History object of trained model
@@ -50,7 +52,7 @@ if __name__ == "__main__":
 
     # Use trained model to predict test data
     predictions = model.predict(xtest_flat, batch_size=batch_size, verbose=1, use_multiprocessing=True)
-    print("First 10 Predictions:\n{}".format(predictions[:10]))
+    # print("First 10 Predictions:\n{}".format(predictions[:10]))
 
     # Save predictions as .npy file
     np.save('ClassPredictions.npy', predictions)
@@ -61,9 +63,12 @@ if __name__ == "__main__":
     # Convert predictions to DataFrame
     pred_df = pd.DataFrame(pred)
 
+    cnames = {0: 'img', 1: 'c0', 2: 'c1', 3: 'c2', 4: 'c3', 5: 'c4',
+              6: 'c5', 7: 'c6', 8: 'c7', 9: 'c8', 10: 'c9'}  # column names
+    pred_df = pred_df.rename(cnames, axis='columns')  # rename columns for submission
+
     # Convert DataFrame to CSV
-    pred_df.to_csv('DNN_Predictions.csv', index=False,
-                   columns=['img', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9'])
+    pred_df.to_csv('DNN_Predictions.csv', index=False)
 
     end = time.time()  # program end time
     print("Execution Time: {} seconds".format(round(end - begin, 2)))
