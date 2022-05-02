@@ -5,7 +5,7 @@ from PIL import Image
 from os import path
 from tqdm import tqdm, trange
 
-M = 96  # M for MxM images
+M = 72  # M for MxM images
 train, test, test_image_names, labels = [], [], [], []  # initialize arrays for training images, testing images, and training labels
 
 if path.exists('XtrDrivingImages.npy') and path.exists('YtrDrivingLabels.npy'):
