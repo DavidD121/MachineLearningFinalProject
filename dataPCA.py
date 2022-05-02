@@ -1,5 +1,3 @@
-import timeit
-
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -28,7 +26,7 @@ if __name__ == "__main__":
 
     n, m = xtrain.shape[0], xtrain.shape[1]
     xtrain_flat = xtrain.reshape(-1, m ** 2)
-    # xtest_flat = xtest.reshape(-1, m ** 2)
+    xtest_flat = xtest.reshape(-1, m ** 2)
     print('Size of the flattened xtrain: {}'.format(xtrain_flat.shape))
 
     feat_cols = ['pixel' + str(i) for i in range(xtrain_flat.shape[1])]
@@ -65,20 +63,5 @@ if __name__ == "__main__":
                     palette=sns.color_palette("hls", 10), data=train_pc_df, legend="full", alpha=0.3)
     plt.show()
 
-    # ---------------------------------------------------------------------------------------------------------------
-    # Leveraging PCA to create a usable data that achieves a desired variance, to be passed to a learning model.
-    # ---------------------------------------------------------------------------------------------------------------
-
-    # find n_components that achieve 90% explained variance
-    # pca = PCA(0.9)
-    # pca.fit(xtrain_flat)
-    # print("{} PCs explain 90% of variance".format(pca.n_components_))
-
-    # apply transform on train & test set to generate new dataset from the calculated PCs
-    # train_img_pca = pca.transform(xtrain_flat)
-    # test_img_pca = pca.transform(xtest_flat)
-
     end = time.time()  # program end time
     print("Execution Time: {} seconds".format(round(end - begin, 2)))
-
-
