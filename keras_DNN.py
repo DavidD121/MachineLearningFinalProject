@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import time
+import matplotlib.pyplot as plt
 from dataPCA import load_data
 from keras.models import Sequential
 from keras.layers import Dense
@@ -12,8 +13,11 @@ if __name__ == "__main__":
     batch_size = 64
     num_classes = 10
     epochs = 20
-    epsilon = 1e-3
-    learn_rate = 1e-2
+    epsilon = 1e-7
+    learn_rate = 1e-3
+    # loss_func = RMSprop()
+    loss_func = SGD(learning_rate=learn_rate)
+    # loss_func = Adam(epsilon=epsilon, learning_rate=learn_rate)
 
     # Load data and normalize images
     xtrain = load_data('XtrDrivingImages.npy') / 255.0
@@ -42,7 +46,7 @@ if __name__ == "__main__":
 
     # Compile model
     model.compile(loss='categorical_crossentropy',
-                  optimizer=SGD(learning_rate=learn_rate),
+                  optimizer=loss_func,
                   metrics=['accuracy'])
 
     # Train model and store History object of trained model
@@ -68,7 +72,25 @@ if __name__ == "__main__":
     pred_df = pred_df.rename(cnames, axis='columns')  # rename columns for submission
 
     # Convert DataFrame to CSV
-    pred_df.to_csv('DNN_Predictions.csv', index=False)
+    pred_df.to_csv('DNN_Predictions_BS{}_E{}_LR{}.csv'.format(batch_size, epochs, learn_rate), index=False)
 
     end = time.time()  # program end time
     print("Execution Time: {} seconds".format(round(end - begin, 2)))
+
+    # ----------------------------------------
+    # PLOT ACCURACY & LOSS OF TRAINING MODEL
+    # ----------------------------------------
+    # summarize history for accuracy
+    plt.plot(history.history['accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train'], loc='upper left')
+    plt.show()
+    # summarize history for loss
+    plt.plot(history.history['loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train'], loc='upper left')
+    plt.show()
